@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file is part of ToneDialer from nullpathos.eu.
+
+    ToneDialer is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ToneDialer is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+<resources>
+
+    <string name="app_name">Tone Dialer</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_tone1_text">1</string>
+    <string name="button_tone2_text">2</string>
+    <string name="button_tone3_text">3</string>
+    <string name="button_tone4_text">4</string>
+    <string name="button_tone5_text">5</string>
+    <string name="button_tone6_text">6</string>
+    <string name="button_tone7_text">7</string>
+    <string name="button_tone8_text">8</string>
+    <string name="button_tone9_text">9</string>
+    <string name="button_tone0_text">0</string>
+    <string name="button_tonestar_text">*</string>
+    <string name="button_tonepound_text">#</string>
+    <string name="button_tonea_text">A</string>
+    <string name="button_toneb_text">B</string>
+    <string name="button_tonec_text">C</string>
+    <string name="button_toned_text">D</string>
+    <string name="button_playtones_text">Play sequence</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="item_prefs_text">Preferences</string>
+    <string name="mintime_pref_text">Minimum tone length</string>
+    <string name="mintime_summary_text">Minimum length in ms</string>
+    <string name="gap_pref_text">Gap between tones</string>
+    <string name="gap_summary_text">Gap in ms</string>
+    <string name="vol_pref_text">In-app volume</string>
+    <string name="vol_summary_text">level is reset when leaving the app</string>
+    <string name="minus">Subtract 10</string>
+    <string name="plus">Add 10</string>
+    <string name="contacts">Contacts</string>
+    <string name="button_clear_text">Clear</string>
+
+</resources>

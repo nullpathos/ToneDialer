@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file is part of ToneDialer from nullpathos.eu.
+
+    ToneDialer is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ToneDialer is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="eu.nullpathos.tonedialer"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="10" />
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <application
+        android:name="eu.nullpathos.tonedialer.ToneDialerApp"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher_tonedialer"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="eu.nullpathos.tonedialer.MainActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="eu.nullpathos.tonedialer.PrefsActivity" >
+        </activity>
+        <activity android:name="eu.nullpathos.tonedialer.ContactsActivity" >
+        </activity>
+    </application>
+
+</manifest>
