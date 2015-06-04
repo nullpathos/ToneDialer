@@ -127,6 +127,8 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 			sequencePlay.cancel(true);
 		}
 		stopAllNow();
+		button_playseq.setText(R.string.button_playtones_text);
+		// TODO: test above line
 		Log.d(TAG, "restoring volume");
 		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, outOfAppVolume, 0);
 		Log.d(TAG,
