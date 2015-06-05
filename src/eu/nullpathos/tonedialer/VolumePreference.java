@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package eu.nullpathos.tonedialer;
 
@@ -29,6 +29,8 @@ import eu.nullpathos.tonedialer.R;
 
 public class VolumePreference extends DialogPreference implements OnSeekBarChangeListener {
 	private final String TAG = "NumberPreference";
+	private final boolean DEBUG = false;
+
 	private final int DEFAULT_VALUE = 50;
 	private int numberValue = DEFAULT_VALUE;
 	private SeekBar volSeekBar;
@@ -48,7 +50,8 @@ public class VolumePreference extends DialogPreference implements OnSeekBarChang
 		// find and hang on to your views here, add click listeners etc
 		// basically things you would do in onCreate
 		super.onBindDialogView(view);
-		Log.d(TAG, "onBindDialogView");
+		if (DEBUG)
+			Log.d(TAG, "onBindDialogView");
 		volSeekBar = (SeekBar) view.findViewById(R.id.vol_seekbar);
 		volSeekBar.setOnSeekBarChangeListener(this);
 		volSeekBar.setProgress(numberValue);
@@ -57,7 +60,8 @@ public class VolumePreference extends DialogPreference implements OnSeekBarChang
 	@Override
 	protected void onDialogClosed(boolean positiveResult) {
 		super.onDialogClosed(positiveResult);
-		Log.d(TAG, "onDialogClosed");
+		if (DEBUG)
+			Log.d(TAG, "onDialogClosed");
 		// When the user selects "OK", persist the new value
 		if (positiveResult) {
 			persistInt(numberValue);
@@ -69,7 +73,8 @@ public class VolumePreference extends DialogPreference implements OnSeekBarChang
 	@Override
 	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		super.onSetInitialValue(restorePersistedValue, defaultValue);
-		Log.d(TAG, "onSetInitialValue");
+		if (DEBUG)
+			Log.d(TAG, "onSetInitialValue");
 		if (restorePersistedValue) {
 			// Restore existing state
 			numberValue = this.getPersistedInt(DEFAULT_VALUE);
@@ -82,19 +87,21 @@ public class VolumePreference extends DialogPreference implements OnSeekBarChang
 
 	@Override
 	protected Object onGetDefaultValue(TypedArray a, int index) {
-		Log.d(TAG, "onGetDefaultValue");
+		if (DEBUG)
+			Log.d(TAG, "onGetDefaultValue");
 		return a.getInteger(index, DEFAULT_VALUE);
 
 	}
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		Log.d(TAG, "onProgressChanged progress="+progress);
+		if (DEBUG)
+			Log.d(TAG, "onProgressChanged progress=" + progress);
 		numberValue = progress;
 	}
 
 	@Override
-	public void onStartTrackingTouch(SeekBar seekBar) {		
+	public void onStartTrackingTouch(SeekBar seekBar) {
 	}
 
 	@Override

@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package eu.nullpathos.tonedialer;
 
@@ -25,6 +25,8 @@ import android.util.Log;
 
 public class ToneDialerApp extends Application implements OnSharedPreferenceChangeListener {
 	private final String TAG = "ToneDialerApp";
+	private final boolean DEBUG = false;
+
 	SharedPreferences prefs;
 	private final int DEFAULT_MINTIME = 250;
 	private final int DEFAULT_SILENCETIME = 70;
@@ -39,7 +41,7 @@ public class ToneDialerApp extends Application implements OnSharedPreferenceChan
 		// Preferences
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.registerOnSharedPreferenceChangeListener(this);
-		
+
 		minTime = (long) prefs.getInt("mintime", DEFAULT_MINTIME);
 		silenceTime = (long) prefs.getInt("gap", DEFAULT_SILENCETIME);
 		inAppVolume = prefs.getInt("volume", DEFAULT_INAPPVOLUME);
@@ -47,7 +49,8 @@ public class ToneDialerApp extends Application implements OnSharedPreferenceChan
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		Log.d(TAG, "onSharedPreferenceChanged key="+key);
+		if (DEBUG)
+			Log.d(TAG, "onSharedPreferenceChanged key=" + key);
 		minTime = (long) prefs.getInt("mintime", DEFAULT_MINTIME);
 		silenceTime = (long) prefs.getInt("gap", DEFAULT_SILENCETIME);
 		inAppVolume = prefs.getInt("volume", DEFAULT_INAPPVOLUME);

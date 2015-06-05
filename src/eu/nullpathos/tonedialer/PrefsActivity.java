@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package eu.nullpathos.tonedialer;
 
@@ -24,12 +24,14 @@ import eu.nullpathos.tonedialer.R;
 
 public class PrefsActivity extends PreferenceActivity {
 	private final String TAG = "PrefsActivity";
+	private final boolean DEBUG = false;
 
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d(TAG, "onCreate");
+		if (DEBUG)
+			Log.d(TAG, "onCreate");
 		addPreferencesFromResource(R.xml.prefs);
 	}
 

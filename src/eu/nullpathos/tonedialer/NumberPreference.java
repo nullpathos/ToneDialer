@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with ToneDialer.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package eu.nullpathos.tonedialer;
 
@@ -30,6 +30,8 @@ import eu.nullpathos.tonedialer.R;
 
 public class NumberPreference extends DialogPreference implements OnClickListener {
 	private final String TAG = "NumberPreference";
+	private final boolean DEBUG = false;
+
 	private final int DEFAULT_VALUE = 0;
 	private final int MAX_VALUE = 1000;
 	private final int MIN_VALUE = 0;
@@ -52,7 +54,8 @@ public class NumberPreference extends DialogPreference implements OnClickListene
 		// find and hang on to your views here, add click listeners etc
 		// basically things you would do in onCreate
 		super.onBindDialogView(view);
-		Log.d(TAG, "onBindDialogView");
+		if (DEBUG)
+			Log.d(TAG, "onBindDialogView");
 		value_view = (EditText) view.findViewById(R.id.editText_value);
 		value_view.setText(String.valueOf(numberValue));
 		plusButton = (Button) view.findViewById(R.id.button_plus);
@@ -64,7 +67,8 @@ public class NumberPreference extends DialogPreference implements OnClickListene
 	@Override
 	protected void onDialogClosed(boolean positiveResult) {
 		super.onDialogClosed(positiveResult);
-		Log.d(TAG, "onDialogClosed");
+		if (DEBUG)
+			Log.d(TAG, "onDialogClosed");
 		// When the user selects "OK", persist the new value
 		if (positiveResult) {
 			numberValue = Integer.parseInt(value_view.getText().toString());
@@ -83,7 +87,8 @@ public class NumberPreference extends DialogPreference implements OnClickListene
 	@Override
 	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		super.onSetInitialValue(restorePersistedValue, defaultValue);
-		Log.d(TAG, "onSetInitialValue");
+		if (DEBUG)
+			Log.d(TAG, "onSetInitialValue");
 		if (restorePersistedValue) {
 			// Restore existing state
 			numberValue = this.getPersistedInt(DEFAULT_VALUE);
@@ -96,14 +101,16 @@ public class NumberPreference extends DialogPreference implements OnClickListene
 
 	@Override
 	protected Object onGetDefaultValue(TypedArray a, int index) {
-		Log.d(TAG, "onGetDefaultValue");
+		if (DEBUG)
+			Log.d(TAG, "onGetDefaultValue");
 		return a.getInteger(index, DEFAULT_VALUE);
 
 	}
 
 	@Override
 	public void onClick(View v) {
-		Log.d(TAG, "onClick");
+		if (DEBUG)
+			Log.d(TAG, "onClick");
 		int val = Integer.parseInt(value_view.getText().toString());
 
 		if (v.getId() == R.id.button_plus) {
