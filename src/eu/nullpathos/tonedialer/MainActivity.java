@@ -18,12 +18,16 @@
 package eu.nullpathos.tonedialer;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,16 +37,22 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.EditText;
-import eu.nullpathos.tonedialer.R;
 
 public class MainActivity extends Activity implements OnClickListener, OnTouchListener {
 	static final String TAG = "ToneDialer";
 	static final boolean DEBUG = false;
 
+	private static final Uri DATA_CONTENT_URI = ContactsContract.Data.CONTENT_URI;
+	private static final String DATA_CONTACT_ID = ContactsContract.Data.CONTACT_ID;
+	private static final String CONTACTS_ID = ContactsContract.Contacts._ID;
+	private static final Uri CONTACTS_CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
+	private static final String DATA_CONTACT_NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
+	private static final int PICK_CONTACT_REQUEST = 0;
+
 	private Button button_tone0, button_tone1, button_tone2, button_tone3;
 	private Button button_tone4, button_tone5, button_tone6, button_tone7;
 	private Button button_tone8, button_tone9, button_tonestar, button_tonepound;
-//	private Button button_tonea, button_toneb, button_tonec, button_toned;
+	// private Button button_tonea, button_toneb, button_tonec, button_toned;
 	private Tone t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, ts, tp, silence;
 	private Button button_contacts;
 	private Button button_playseq;
@@ -195,21 +205,49 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		if (v.getId() == R.id.button_playtones) {
 			playSequence(edittext_seqtoplay.getText().toString());
 		}
-		if (v.getId() == R.id.button_contacts) {
-			// call contacts
-			startActivityForResult(new Intent(this, ContactsActivity.class), 0);
-		}
 		if (v.getId() == R.id.button_clear) {
 			edittext_seqtoplay.setText("");
+		}
+		if (v.getId() == R.id.button_contacts) {
+			// call contacts
+			try {
+				Intent intent = new Intent(Intent.ACTION_PICK, CONTACTS_CONTENT_URI);
+				startActivityForResult(intent, PICK_CONTACT_REQUEST);
+			} catch (Exception e) {
+				Log.e(TAG, e.toString());
+			}
 		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (resultCode == RESULT_OK) {
-			String s = data.getStringExtra(ContactsActivity.RESULT);
-			edittext_seqtoplay.setText(s);
+		if (DEBUG)
+			Log.d(TAG, "onActivityResult");
+
+		if (resultCode == Activity.RESULT_OK && requestCode == PICK_CONTACT_REQUEST) {
+			ContentResolver cr = getContentResolver();
+
+			Cursor cursor = cr.query(data.getData(), null, null, null, null);
+
+			if (cursor != null && cursor.moveToFirst()) {
+				String contactId = cursor.getString(cursor.getColumnIndex(CONTACTS_ID));
+				String selection = DATA_CONTACT_ID + " = ?";
+				String[] selectionParams = new String[] { contactId };
+				Cursor contactCur = cr.query(DATA_CONTENT_URI, null, selection, selectionParams, null);
+
+				if (contactCur != null && contactCur.moveToFirst()) {
+					String contactNumber = contactCur.getString(contactCur.getColumnIndex(DATA_CONTACT_NUMBER));
+
+					if (contactNumber != null) {
+						edittext_seqtoplay.setText(contactNumber);
+					}
+				}
+				if (contactCur != null)
+					contactCur.close();
+			}
+			if (cursor != null)
+				cursor.close();
 		}
 	}
 
