@@ -242,18 +242,18 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	@Override
-	public boolean onTouch(View v, MotionEvent event) {
+	public boolean onTouch(View view, MotionEvent event) {
 		if (DEBUG) Log.d(TAG, "onTouch");
 
 		int action = event.getAction();
-		final int v_id = v.getId();
+		final int viewId = view.getId();
 
 		if (action == MotionEvent.ACTION_DOWN) {
 			new Thread() {
 				public void run() {
 					if (DEBUG) Log.d(TAG, "here is where we play a tone");
 					stopAllNow();
-					switch (v_id) {
+					switch (viewId) {
 					case R.id.button_tone0:
 						t0.start();
 						break;
@@ -296,7 +296,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 				}
 			}.start();
 
-			switch (v_id) {
+			switch (viewId) {
 			case R.id.button_tone0:
 				edittext_seqtoplay.append("0");
 				break;
@@ -342,7 +342,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 			new Thread() {
 				public void run() {
 					if (DEBUG) Log.d(TAG, "here is where we stop a playing tone");
-					switch (v_id) {
+					switch (viewId) {
 					case R.id.button_tone0:
 						t0.stop();
 						break;
@@ -384,6 +384,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 					}
 				}
 			}.start();
+			view.performClick();
 		}
 		return false;
 	}
