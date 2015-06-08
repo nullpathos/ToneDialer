@@ -42,10 +42,10 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	static final String TAG = "ToneDialer";
 	static final boolean DEBUG = false;
 
-	private static final Uri DATA_CONTENT_URI = ContactsContract.Data.CONTENT_URI;
+	private static final Uri CONTACTS_CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
+	private static final Uri PHONE_NUMBER_URI = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 	private static final String DATA_CONTACT_ID = ContactsContract.Data.CONTACT_ID;
 	private static final String CONTACTS_ID = ContactsContract.Contacts._ID;
-	private static final Uri CONTACTS_CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
 	private static final String DATA_CONTACT_NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
 	private static final int PICK_CONTACT_REQUEST = 0;
 
@@ -70,8 +70,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (DEBUG)
-			Log.d(TAG, "in onCreate");
+		if (DEBUG) Log.d(TAG, "in onCreate");
 		setContentView(R.layout.activity_main);
 		button_tone0 = (Button) findViewById(R.id.button_tone0);
 		button_tone0.setOnTouchListener(this);
@@ -111,8 +110,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 
 		soundPool = new SoundPool(9, AudioManager.STREAM_MUSIC, 0);
 		if (soundPool == null) {
-			if (DEBUG)
-				Log.d(TAG, "oops, soundPool is null!");
+			if (DEBUG) Log.d(TAG, "oops, soundPool is null!");
 		}
 
 		t0 = new Tone(this, soundPool, R.raw.dtmf0);
@@ -129,27 +127,23 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		tp = new Tone(this, soundPool, R.raw.dtmfpound);
 		silence = new Tone(this, soundPool, R.raw.silence400ms);
 
-		if (DEBUG)
-			Log.d(TAG, "getting AudioManager");
+		if (DEBUG) Log.d(TAG, "getting AudioManager");
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (DEBUG)
-			Log.d(TAG, "onPause");
+		if (DEBUG) Log.d(TAG, "onPause");
 		if (sequencePlay != null) {
 			sequencePlay.cancel(true);
 		}
 		stopAllNow();
 		button_playseq.setText(R.string.button_playtones_text);
-		if (DEBUG)
-			Log.d(TAG, "restoring volume");
+		if (DEBUG) Log.d(TAG, "restoring volume");
 		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, outOfAppVolume, 0);
 		if (forceSpeaker) {
-			if (DEBUG)
-				Log.d(TAG, "restoring speaker setting");
+			if (DEBUG) Log.d(TAG, "restoring speaker setting");
 			audioManager.setSpeakerphoneOn(isSpeakerOn);
 		}
 	}
@@ -157,8 +151,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (DEBUG)
-			Log.d(TAG, "onResume");
+		if (DEBUG) Log.d(TAG, "onResume");
 
 		minTime = ((ToneDialerApp) getApplication()).minTime;
 		silenceTime = ((ToneDialerApp) getApplication()).silenceTime;
@@ -172,8 +165,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		if (forceSpeaker) {
 			isSpeakerOn = audioManager.isSpeakerphoneOn();
 			if (!isSpeakerOn) {
-				if (DEBUG)
-					Log.d(TAG, "forcing speaker on");
+				if (DEBUG) Log.d(TAG, "forcing speaker on");
 				audioManager.setSpeakerphoneOn(true);
 			}
 		}
@@ -182,15 +174,13 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	@Override
 	protected void onStop() {
 		super.onStop();
-		if (DEBUG)
-			Log.d(TAG, "onStop");
+		if (DEBUG) Log.d(TAG, "onStop");
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (DEBUG)
-			Log.d(TAG, "onDestroy");
+		if (DEBUG) Log.d(TAG, "onDestroy");
 		if (soundPool != null) {
 			soundPool.release();
 			soundPool = null;
@@ -199,8 +189,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 
 	@Override
 	public void onClick(View v) {
-		if (DEBUG)
-			Log.d(TAG, "onClick");
+		if (DEBUG) Log.d(TAG, "onClick");
 
 		if (v.getId() == R.id.button_playtones) {
 			playSequence(edittext_seqtoplay.getText().toString());
@@ -222,19 +211,22 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (DEBUG)
-			Log.d(TAG, "onActivityResult");
+		if (DEBUG) Log.d(TAG, "onActivityResult");
 
 		if (resultCode == Activity.RESULT_OK && requestCode == PICK_CONTACT_REQUEST) {
 			ContentResolver cr = getContentResolver();
 
 			Cursor cursor = cr.query(data.getData(), null, null, null, null);
+			// if (DEBUG) Log.d(TAG, "cursor size " + cursor.getCount());
 
 			if (cursor != null && cursor.moveToFirst()) {
 				String contactId = cursor.getString(cursor.getColumnIndex(CONTACTS_ID));
+				String[] projection = new String[] { DATA_CONTACT_NUMBER };
 				String selection = DATA_CONTACT_ID + " = ?";
 				String[] selectionParams = new String[] { contactId };
-				Cursor contactCur = cr.query(DATA_CONTENT_URI, null, selection, selectionParams, null);
+				Cursor contactCur = cr.query(PHONE_NUMBER_URI, projection, selection, selectionParams, null);
+				// if (DEBUG) Log.d(TAG, "contactCur size " +
+				// contactCur.getCount());
 
 				if (contactCur != null && contactCur.moveToFirst()) {
 					String contactNumber = contactCur.getString(contactCur.getColumnIndex(DATA_CONTACT_NUMBER));
@@ -243,17 +235,15 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 						edittext_seqtoplay.setText(contactNumber);
 					}
 				}
-				if (contactCur != null)
-					contactCur.close();
+				if (contactCur != null) contactCur.close();
 			}
-			if (cursor != null)
-				cursor.close();
+			if (cursor != null) cursor.close();
 		}
 	}
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		// if (DEBUG) Log.d(TAG, "onTouch");
+		if (DEBUG) Log.d(TAG, "onTouch");
 
 		int action = event.getAction();
 		final int v_id = v.getId();
@@ -261,8 +251,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		if (action == MotionEvent.ACTION_DOWN) {
 			new Thread() {
 				public void run() {
-					if (DEBUG)
-						Log.d(TAG, "here is where we play a tone");
+					if (DEBUG) Log.d(TAG, "here is where we play a tone");
 					stopAllNow();
 					switch (v_id) {
 					case R.id.button_tone0:
@@ -352,8 +341,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		if (action == MotionEvent.ACTION_UP) {
 			new Thread() {
 				public void run() {
-					if (DEBUG)
-						Log.d(TAG, "here is where we stop a playing tone");
+					if (DEBUG) Log.d(TAG, "here is where we stop a playing tone");
 					switch (v_id) {
 					case R.id.button_tone0:
 						t0.stop();
@@ -418,17 +406,14 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	private void playSequence(final String s) {
-		if (DEBUG)
-			Log.d(TAG, "playSequence called with string=" + s);
+		if (DEBUG) Log.d(TAG, "playSequence called with string=" + s);
 		if (sequencePlay != null && sequencePlay.getStatus() != AsyncTask.Status.FINISHED && !sequencePlay.isCancelled()) {
-			if (DEBUG)
-				Log.d(TAG, "cancelling sequencePlay");
+			if (DEBUG) Log.d(TAG, "cancelling sequencePlay");
 			sequencePlay.cancel(true);
 			stopAllNow();
 			button_playseq.setText(R.string.button_playtones_text);
 		} else if (s != null && s.length() != 0) {
-			if (DEBUG)
-				Log.d(TAG, "starting new sequencePlay");
+			if (DEBUG) Log.d(TAG, "starting new sequencePlay");
 			sequencePlay = new SequencePlay();
 			sequencePlay.execute(s);
 			button_playseq.setText(R.string.button_cancel);
@@ -436,8 +421,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	private void playTone(char c) throws InterruptedException {
-		if (DEBUG)
-			Log.d(TAG, "playTone called with " + c);
+		if (DEBUG) Log.d(TAG, "playTone called with " + c);
 		switch (c) {
 		case '0':
 			t0.sequencePlay();
@@ -500,16 +484,14 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		@Override
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
-			if (DEBUG)
-				Log.d(TAG, "in onPostExecute");
+			if (DEBUG) Log.d(TAG, "in onPostExecute");
 			button_playseq.setText(R.string.button_playtones_text);
 
 		}
 
 		@Override
 		protected Void doInBackground(String... params) {
-			if (DEBUG)
-				Log.d(TAG, "playing silence");
+			if (DEBUG) Log.d(TAG, "playing silence");
 			try {
 				// this is just to wake up the audio driver
 				silence.sequencePlay();
@@ -571,12 +553,10 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 					try {
 						Thread.sleep(minTime);
 					} catch (InterruptedException e) {
-						if (DEBUG)
-							Log.d(TAG, "got interrupted!");
+						if (DEBUG) Log.d(TAG, "got interrupted!");
 					}
 					timeUp = true;
-					if (DEBUG)
-						Log.d(TAG, "time up");
+					if (DEBUG) Log.d(TAG, "time up");
 				}
 			};
 			minTimeThread.start();
