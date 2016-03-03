@@ -64,12 +64,13 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	private AudioManager audioManager;
 	private int inAppVolume; // 0-100
 	private int outOfAppVolume; // 0-max from AudioManager
-	private boolean forceSpeaker = false; // TODO: add this as a preference
+	private boolean forceSpeaker = false; // TODO: add this as a preference?
 	private boolean isSpeakerOn;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		if (DEBUG) Log.d(TAG, "in onCreate");
 		setContentView(R.layout.activity_main);
 		button_tone0 = (Button) findViewById(R.id.button_tone0);
@@ -108,7 +109,8 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 
 		edittext_seqtoplay = (EditText) findViewById(R.id.editText_seqtoplay);
 
-		soundPool = new SoundPool(9, AudioManager.STREAM_MUSIC, 0);
+		// create SoundPool object with 3 streams
+		soundPool = new SoundPool(3, AudioManager.STREAM_MUSIC, 0);
 		if (soundPool == null) {
 			if (DEBUG) Log.d(TAG, "oops, soundPool is null!");
 		}
@@ -140,7 +142,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 		stopAllNow();
 		button_playseq.setText(R.string.button_playtones_text);
-		if (DEBUG) Log.d(TAG, "restoring volume");
+		if (DEBUG) Log.d(TAG, "restoring outOfAppVolume");
 		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, outOfAppVolume, 0);
 		if (forceSpeaker) {
 			if (DEBUG) Log.d(TAG, "restoring speaker setting");
@@ -160,6 +162,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		int realVol = inAppVolume * (audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) / 100;
 
 		outOfAppVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+		if (DEBUG) Log.d(TAG, "setting inAppVolume");
 		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, realVol, 0);
 
 		if (forceSpeaker) {
@@ -243,15 +246,16 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
-		if (DEBUG) Log.d(TAG, "onTouch");
-
+		// if (DEBUG) Log.d(TAG, "onTouch");
 		int action = event.getAction();
 		final int viewId = view.getId();
 
 		if (action == MotionEvent.ACTION_DOWN) {
+			if (DEBUG) Log.d(TAG, "onTouch ACTION_DOWN");
 			new Thread() {
 				public void run() {
-					if (DEBUG) Log.d(TAG, "here is where we play a tone");
+					if (DEBUG) Log.d(TAG, "play the tone");
+					// stop any playing tones first - no polyphony
 					stopAllNow();
 					switch (viewId) {
 					case R.id.button_tone0:
@@ -339,9 +343,10 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		}
 
 		if (action == MotionEvent.ACTION_UP) {
+			if (DEBUG) Log.d(TAG, "onTouch ACTION_UP");
 			new Thread() {
 				public void run() {
-					if (DEBUG) Log.d(TAG, "here is where we stop a playing tone");
+					if (DEBUG) Log.d(TAG, "stop the tone");
 					switch (viewId) {
 					case R.id.button_tone0:
 						t0.stop();
@@ -481,15 +486,6 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 	}
 
 	class SequencePlay extends AsyncTask<String, Void, Void> {
-
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			if (DEBUG) Log.d(TAG, "in onPostExecute");
-			button_playseq.setText(R.string.button_playtones_text);
-
-		}
-
 		@Override
 		protected Void doInBackground(String... params) {
 			if (DEBUG) Log.d(TAG, "playing silence");
@@ -512,17 +508,21 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 			return null;
 		}
 
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			if (DEBUG) Log.d(TAG, "in onPostExecute");
+			button_playseq.setText(R.string.button_playtones_text);
+		}
 	}
 
 	class Tone {
 		private SoundPool sp;
-		private int streamId = 0;
+		private volatile int streamId = 0;
 		private int dtmf_tone;
-		private boolean playing = false;
-		private boolean timeUp = true;
-		// private long minTime = 250; // (ms)
-		// private long silenceTime = 70; // (ms)
-		private Thread minTimeThread = null;
+		private volatile boolean playing = false;
+		private volatile boolean timeUp = true;
+		private volatile Thread minTimeThread = null;
 		private float volume = 1.0f;
 
 		public Tone(Context context, SoundPool sp, int resource_id) {
@@ -538,34 +538,44 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 			timeUp = false;
 			playing = true;
 			Thread.sleep(minTime);
-			timeUp = true;
 			stopNow();
 			Thread.sleep(silenceTime);
 		}
 
 		public void start() {
 			// start the tone playing
-			streamId = sp.play(dtmf_tone, volume, volume, 1, 0, 1.0f);
-			minTimeThread = new Thread() {
-				// this is the min time thread
-				public void run() {
+			synchronized (this) {
+				if (!playing) {
+					streamId = sp.play(dtmf_tone, volume, volume, 1, 0, 1.0f);
 					playing = true;
-					timeUp = false;
-					try {
-						Thread.sleep(minTime);
-					} catch (InterruptedException e) {
-						if (DEBUG) Log.d(TAG, "got interrupted!");
+					// only one minTimeThread at a time so interrupt the current if necessary
+					// (overkill as already done in stopNow)
+					if (minTimeThread != null && minTimeThread.isAlive()) {
+						minTimeThread.interrupt();
 					}
-					timeUp = true;
-					if (DEBUG) Log.d(TAG, "time up");
+					minTimeThread = new Thread() {
+						public void run() {
+							timeUp = false;
+							try {
+								Thread.sleep(minTime);
+							} catch (InterruptedException e) {
+								// do nothing
+							}
+							timeUp = true;
+							if (DEBUG) Log.d(TAG, " time up");
+						}
+					};
+					minTimeThread.start();
 				}
-			};
-			minTimeThread.start();
+			}
 		}
 
-		public void stop() {
+		public synchronized void stop() {
 			// stop only after minimum time is up
-			if (playing) {
+			// no check is made of playing here because it may be false when the tone is playing
+			// this is possibly due to android implementation of volatile vs optimisation (?)
+			// makes no difference as we want to avoid single tone heterphony anyway
+			synchronized (this) {
 				if (timeUp) {
 					if (streamId != 0) {
 						sp.pause(streamId);
@@ -574,6 +584,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 				} else {
 					new Thread() {
 						public void run() {
+							// wait for the minTime delay to expire
 							try {
 								if (minTimeThread != null) {
 									minTimeThread.join(minTime);
@@ -581,6 +592,7 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 							} catch (InterruptedException e) {
 								// do nothing
 							}
+							// stop the tone
 							if (streamId != 0) {
 								sp.pause(streamId);
 							}
@@ -591,17 +603,17 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 			}
 		}
 
-		public void stopNow() {
+		public synchronized void stopNow() {
 			// stop now disregarding minimum time
-			if (playing) {
+			synchronized (this) {
 				if (streamId != 0) {
 					sp.pause(streamId);
 				}
-				playing = false;
-				timeUp = true;
-				if (minTimeThread != null) {
+				if (minTimeThread != null && minTimeThread.isAlive()) {
 					minTimeThread.interrupt();
 				}
+				playing = false;
+				timeUp = true;
 			}
 		}
 	}
